@@ -1,4 +1,4 @@
-package main
+package adventofcode2017
 
 func Day1Part1(input string) int {
 	var sum int
