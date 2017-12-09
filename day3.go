@@ -20,3 +20,71 @@ func Day3Part1(input int64) int64 {
 	// And finally calculate the number of steps needed
 	return spiral + int64(math.Abs(float64(off-spiral)))
 }
+
+func Day3Part2(input int64) int64 {
+	spiral := int64(math.Floor(math.Ceil(math.Sqrt(float64(input))) / 2.0))
+	table := make([][]int64, spiral)
+
+	for i := int64(0); i < spiral; i++ {
+		table[i] = make([]int64, spiral)
+	}
+
+	x := spiral / 2
+	y := spiral / 2
+	table[y][x] = 1 // center
+
+	type direction int
+	const (
+		up direction = iota
+		down
+		left
+		right
+	)
+
+	dir := right
+	var sum int64
+
+	for {
+		if sum > input {
+			break
+		}
+
+		switch dir {
+		case right:
+			sum = table[y][x] + table[y-1][x] + table[y-1][x+1] + table[y-1][x+2]
+			x++
+			table[y][x] = sum
+
+			if table[y-1][x] == 0 {
+				dir = up
+			}
+		case left:
+			sum = table[y][x] + table[y+1][x] + table[y+1][x-1] + table[y+1][x-2]
+			x--
+			table[y][x] = sum
+
+			if table[y+1][x] == 0 {
+				dir = down
+			}
+		case up:
+			sum = table[y][x] + table[y][x-1] + table[y-1][x-1] + table[y-2][x-1]
+			y--
+			table[y][x] = sum
+
+			if table[y][x-1] == 0 {
+				dir = left
+			}
+		case down:
+			// sum += current + one-right + one-right & one-down + one-right & two-down
+			sum = table[y][x] + table[y][x+1] + table[y+1][x+1] + table[y+2][x+1]
+			y++
+			table[y][x] = sum
+
+			if table[y][x+1] == 0 {
+				dir = right
+			}
+		}
+	}
+
+	return sum
+}
