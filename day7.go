@@ -37,9 +37,39 @@ func Day7Part1(input string) string {
 func Day7Part2(input string) int {
 	towers := createTowers(input)
 
+	result := make(map[string]*tower, len(towers))
+	for _, v := range towers {
+		result[v.name] = v
+	}
+
+	// delete everything that is above something else
 	for _, t := range towers {
+		for _, v := range t.above {
+			delete(result, v.name)
+		}
+	}
+
+	if len(result) != 1 {
+		panic("towers length is not 1: " + strconv.Itoa(len(towers)))
+	}
+
+	var t *tower
+	for _, v := range result {
+		t = v
+		break
+	}
+
+	// we are using a recursive algorithm to find the highest
+	// (as in highest up in the tree) unbalanced child,
+	// because an imbalance might be caused by an unbalanced
+	// child
+	var highestUnbalanced map[int][]*tower
+
+	var find func(t *tower)
+
+	find = func(t *tower) {
 		if len(t.above) < 1 {
-			continue
+			return
 		}
 
 		childWeights := make(map[int][]*tower, len(t.above))
@@ -51,25 +81,31 @@ func Day7Part2(input string) int {
 		}
 
 		if len(childWeights) != 1 {
-			var correct int
-			var incorrect int
-			var incorrectTower *tower
+			highestUnbalanced = childWeights
+		}
 
-			for weight, towers := range childWeights {
-				if len(towers) == 1 {
-					incorrect = weight
-					incorrectTower = towers[0]
-				} else {
-					correct = weight
-				}
-			}
-
-			diff := correct - incorrect
-			return incorrectTower.weight + diff
+		for _, v := range t.above {
+			find(v)
 		}
 	}
 
-	return 0
+	find(t)
+
+	var correct int
+	var incorrect int
+	var incorrectTower *tower
+
+	for weight, towers := range highestUnbalanced {
+		if len(towers) == 1 {
+			incorrect = weight
+			incorrectTower = towers[0]
+		} else {
+			correct = weight
+		}
+	}
+
+	diff := correct - incorrect
+	return incorrectTower.weight + diff
 }
 
 type towerSpec struct {
